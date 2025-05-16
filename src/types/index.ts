@@ -14,6 +14,16 @@ export interface YouTubeVideo {
   publishedAt: string;
 }
 
+// YouTube Comment Interface
+export interface YouTubeComment {
+  id: string;
+  text: string;
+  authorDisplayName: string;
+  authorProfileImageUrl: string;
+  likeCount: number;
+  publishedAt: string;
+}
+
 // YouTube API Response Interface
 export interface YouTubeSearchResponse {
   items: Array<{
@@ -32,6 +42,26 @@ export interface YouTubeSearchResponse {
       publishedAt: string;
     };
   }>;
+}
+
+// YouTube Comments Response Interface
+export interface YouTubeCommentsResponse {
+  items: Array<{
+    id: string;
+    snippet: {
+      topLevelComment: {
+        id: string;
+        snippet: {
+          textDisplay: string;
+          authorDisplayName: string;
+          authorProfileImageUrl: string;
+          likeCount: number;
+          publishedAt: string;
+        };
+      };
+    };
+  }>;
+  nextPageToken?: string;
 }
 
 // Navigation Types

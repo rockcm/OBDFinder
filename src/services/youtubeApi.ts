@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { YOUTUBE_API_KEY, YOUTUBE_API_URL } from '../config/api';
-import { YouTubeSearchResponse, YouTubeVideo } from '../types';
+import { YOUTUBE_API_KEY, YOUTUBE_API_URL, YOUTUBE_COMMENTS_URL } from '../config/api';
+import { YouTubeSearchResponse, YouTubeVideo, YouTubeComment, YouTubeCommentsResponse } from '../types';
 
 /**
  * Search YouTube videos for the given OBD code
@@ -32,5 +32,39 @@ export const searchYouTubeVideos = async (obdCode: string): Promise<YouTubeVideo
   } catch (error) {
     console.error('Error searching YouTube videos:', error);
     throw error;
+  }
+};
+
+/**
+ * Fetch comments for a YouTube video
+ * @param videoId The YouTube video ID
+ * @param maxResults Maximum number of comments to return
+ * @returns An array of YouTube comments
+ */
+export const fetchYouTubeComments = async (videoId: string, maxResults: number = 10): Promise<YouTubeComment[]> => {
+  try {
+    const response = await axios.get<YouTubeCommentsResponse>(YOUTUBE_COMMENTS_URL, {
+      params: {
+        part: 'snippet',
+        videoId: videoId,
+        maxResults: maxResults,
+        textFormat: 'plainText',
+        key: YOUTUBE_API_KEY,
+      }
+    });
+
+    // Transform the API response to our YouTubeComment format
+    return response.data.items.map(item => ({
+      id: item.id,
+      text: item.snippet.topLevelComment.snippet.textDisplay,
+      authorDisplayName: item.snippet.topLevelComment.snippet.authorDisplayName,
+      authorProfileImageUrl: item.snippet.topLevelComment.snippet.authorProfileImageUrl,
+      likeCount: item.snippet.topLevelComment.snippet.likeCount,
+      publishedAt: item.snippet.topLevelComment.snippet.publishedAt
+    }));
+  } catch (error) {
+    console.error('Error fetching YouTube comments:', error);
+    // Return empty array instead of throwing to prevent app crashes if comments can't be loaded
+    return [];
   }
 }; 

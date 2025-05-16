@@ -9,13 +9,17 @@ import {
   Animated,
   Share,
   Platform,
-  useWindowDimensions
+  useWindowDimensions,
+  Image,
+  ActivityIndicator
 } from 'react-native';
 import { RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../types';
+import { fetchYouTubeComments } from '../services/youtubeApi';
+import { YouTubeComment } from '../types';
 
 // Only import WebView for non-web platforms
 const WebViewComponent = Platform.select({
@@ -28,8 +32,110 @@ type VideoPlayerScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, 'VideoPlayer'>;
 };
 
+// Comment component for mobile
+const CommentItem = ({ comment }: { comment: YouTubeComment }) => {
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString(undefined, { 
+      year: 'numeric', 
+      month: 'short',
+      day: 'numeric' 
+    });
+  };
+
+  return (
+    <View style={styles.commentItem}>
+      <Image source={{ uri: comment.authorProfileImageUrl }} style={styles.commentAvatar} />
+      <View style={styles.commentContent}>
+        <View style={styles.commentHeader}>
+          <Text style={styles.commentAuthor}>{comment.authorDisplayName}</Text>
+          <Text style={styles.commentDate}>{formatDate(comment.publishedAt)}</Text>
+        </View>
+        <Text style={styles.commentText}>{comment.text}</Text>
+        <View style={styles.commentFooter}>
+          <Text style={styles.likeCount}>
+            {comment.likeCount > 0 ? `${comment.likeCount} ${comment.likeCount === 1 ? 'like' : 'likes'}` : ''}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+};
+
+// Web comment component
+const WebCommentItem = ({ comment }: { comment: YouTubeComment }) => {
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString(undefined, { 
+      year: 'numeric', 
+      month: 'short',
+      day: 'numeric' 
+    });
+  };
+  
+  return (
+    <div style={{
+      display: 'flex',
+      marginBottom: '16px',
+      paddingBottom: '12px',
+      borderBottom: '1px solid #f0f0f0'
+    }}>
+      <img 
+        src={comment.authorProfileImageUrl} 
+        style={{
+          width: '36px',
+          height: '36px',
+          borderRadius: '18px',
+          marginRight: '12px'
+        }} 
+      />
+      <div style={{ flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+          <span style={{ 
+            fontSize: '14px', 
+            fontWeight: 'bold', 
+            marginRight: '8px' 
+          }}>
+            {comment.authorDisplayName}
+          </span>
+          <span style={{ fontSize: '12px', color: '#666' }}>
+            {formatDate(comment.publishedAt)}
+          </span>
+        </div>
+        <p style={{ 
+          margin: '0 0 8px 0',
+          fontSize: '14px',
+          lineHeight: '1.4'
+        }}>
+          {comment.text}
+        </p>
+        {comment.likeCount > 0 && (
+          <div style={{ fontSize: '12px', color: '#666' }}>
+            {comment.likeCount} {comment.likeCount === 1 ? 'like' : 'likes'}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // Super simplified web player
 const WebPlayer = ({ video, navigation }: { video: any, navigation: any }) => {
+  const [comments, setComments] = useState<YouTubeComment[]>([]);
+  const [isLoadingComments, setIsLoadingComments] = useState<boolean>(true);
+  const [tab, setTab] = useState<'description' | 'comments'>('description');
+  
+  useEffect(() => {
+    const loadComments = async () => {
+      setIsLoadingComments(true);
+      const videoComments = await fetchYouTubeComments(video.id);
+      setComments(videoComments);
+      setIsLoadingComments(false);
+    };
+    
+    loadComments();
+  }, [video.id]);
+  
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString(undefined, { 
@@ -89,22 +195,78 @@ const WebPlayer = ({ video, navigation }: { video: any, navigation: any }) => {
           </div>
         </div>
 
-        {/* Description - Scrollable */}
+        {/* Tab Selector */}
+        <div style={{
+          display: 'flex',
+          borderBottom: '1px solid #f0f0f0'
+        }}>
+          <div 
+            onClick={() => setTab('description')}
+            style={{
+              padding: '12px 16px',
+              fontWeight: tab === 'description' ? 'bold' : 'normal',
+              borderBottom: tab === 'description' ? '2px solid #2196F3' : 'none',
+              cursor: 'pointer'
+            }}
+          >
+            Description
+          </div>
+          <div 
+            onClick={() => setTab('comments')}
+            style={{
+              padding: '12px 16px',
+              fontWeight: tab === 'comments' ? 'bold' : 'normal',
+              borderBottom: tab === 'comments' ? '2px solid #2196F3' : 'none',
+              cursor: 'pointer'
+            }}
+          >
+            Comments
+          </div>
+        </div>
+
+        {/* Content Based on Selected Tab */}
         <div style={{
           flex: 1,
           overflowY: 'auto',
           padding: '16px',
           paddingBottom: '80px'
         }}>
-          <h4 style={{ margin: '0 0 8px 0', fontSize: '16px' }}>Description</h4>
-          <p style={{ 
-            margin: 0, 
-            fontSize: '14px', 
-            lineHeight: '1.5', 
-            whiteSpace: 'pre-line' 
-          }}>
-            {video.description}
-          </p>
+          {tab === 'description' ? (
+            <div>
+              <p style={{ 
+                margin: 0, 
+                fontSize: '14px', 
+                lineHeight: '1.5', 
+                whiteSpace: 'pre-line' 
+              }}>
+                {video.description}
+              </p>
+            </div>
+          ) : (
+            <div>
+              {isLoadingComments ? (
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'center',
+                  padding: '20px'
+                }}>
+                  <span>Loading comments...</span>
+                </div>
+              ) : comments.length > 0 ? (
+                comments.map(comment => (
+                  <WebCommentItem key={comment.id} comment={comment} />
+                ))
+              ) : (
+                <div style={{ 
+                  padding: '20px',
+                  textAlign: 'center',
+                  color: '#666'
+                }}>
+                  No comments available for this video.
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -151,6 +313,9 @@ const VideoPlayerScreen: React.FC<VideoPlayerScreenProps> = ({ route, navigation
   const { video } = route.params;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(100)).current;
+  const [activeTab, setActiveTab] = useState<'description' | 'comments'>('description');
+  const [comments, setComments] = useState<YouTubeComment[]>([]);
+  const [isLoadingComments, setIsLoadingComments] = useState<boolean>(false);
   
   useEffect(() => {
     Animated.parallel([
@@ -166,6 +331,19 @@ const VideoPlayerScreen: React.FC<VideoPlayerScreenProps> = ({ route, navigation
       })
     ]).start();
   }, []);
+  
+  useEffect(() => {
+    const loadComments = async () => {
+      if (activeTab === 'comments') {
+        setIsLoadingComments(true);
+        const videoComments = await fetchYouTubeComments(video.id);
+        setComments(videoComments);
+        setIsLoadingComments(false);
+      }
+    };
+    
+    loadComments();
+  }, [video.id, activeTab]);
   
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -228,6 +406,32 @@ const VideoPlayerScreen: React.FC<VideoPlayerScreenProps> = ({ route, navigation
           </View>
         </View>
         
+        {/* Tab selector */}
+        <View style={styles.tabContainer}>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'description' && styles.activeTab]} 
+            onPress={() => setActiveTab('description')}
+          >
+            <Text style={[
+              styles.tabText, 
+              activeTab === 'description' && styles.activeTabText
+            ]}>
+              Description
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'comments' && styles.activeTab]} 
+            onPress={() => setActiveTab('comments')}
+          >
+            <Text style={[
+              styles.tabText, 
+              activeTab === 'comments' && styles.activeTabText
+            ]}>
+              Comments
+            </Text>
+          </TouchableOpacity>
+        </View>
+        
         {/* Actions section */}
         <View style={styles.actionsRow}>
           <TouchableOpacity 
@@ -239,15 +443,37 @@ const VideoPlayerScreen: React.FC<VideoPlayerScreenProps> = ({ route, navigation
           </TouchableOpacity>
         </View>
         
-        {/* Description section - scrollable */}
+        {/* Content based on selected tab */}
         <View style={styles.descriptionWrapper}>
           <ScrollView 
             style={styles.descriptionContainer}
             contentContainerStyle={styles.descriptionContent}
             showsVerticalScrollIndicator={true}
           >
-            <Text style={styles.descriptionTitle}>Description</Text>
-            <Text style={styles.description}>{video.description}</Text>
+            {activeTab === 'description' ? (
+              <>
+                <Text style={styles.descriptionTitle}>Description</Text>
+                <Text style={styles.description}>{video.description}</Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.descriptionTitle}>Comments</Text>
+                {isLoadingComments ? (
+                  <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="small" color="#2196F3" />
+                    <Text style={styles.loadingText}>Loading comments...</Text>
+                  </View>
+                ) : comments.length > 0 ? (
+                  comments.map(comment => (
+                    <CommentItem key={comment.id} comment={comment} />
+                  ))
+                ) : (
+                  <Text style={styles.noCommentsText}>
+                    No comments available for this video.
+                  </Text>
+                )}
+              </>
+            )}
             {/* Extra space at bottom to ensure content is scrollable past the back button */}
             <View style={{ height: 100 }} />
           </ScrollView>
@@ -320,6 +546,28 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
   },
+  tabContainer: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  tab: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  activeTab: {
+    borderBottomColor: '#2196F3',
+  },
+  tabText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  activeTabText: {
+    color: '#2196F3',
+    fontWeight: '600',
+  },
   actionsRow: {
     flexDirection: 'row',
     paddingHorizontal: 16,
@@ -358,6 +606,64 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     color: '#616161',
+  },
+  commentItem: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  commentAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    marginRight: 12,
+  },
+  commentContent: {
+    flex: 1,
+  },
+  commentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  commentAuthor: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginRight: 8,
+  },
+  commentDate: {
+    fontSize: 12,
+    color: '#666',
+  },
+  commentText: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+  commentFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  likeCount: {
+    fontSize: 12,
+    color: '#666',
+  },
+  loadingContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: '#666',
+  },
+  noCommentsText: {
+    padding: 20,
+    textAlign: 'center',
+    color: '#666',
+    fontSize: 14,
   },
   backButton: {
     position: 'absolute',
