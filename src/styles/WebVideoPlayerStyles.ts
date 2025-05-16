@@ -61,6 +61,11 @@ export const dateStyle = {
   color: '#666'
 };
 
+export const viewsStyle = {
+  fontSize: '14px',
+  color: '#666'
+};
+
 export const tabContainerStyle = {
   display: 'flex',
   borderBottom: '1px solid #f0f0f0'

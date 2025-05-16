@@ -17,7 +17,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../types';
-import { fetchYouTubeComments } from '../services/youtubeApi';
+import { fetchYouTubeComments, fetchVideoDetails } from '../services/youtubeApi';
 import { YouTubeComment } from '../types';
 import { styles } from '../styles/VideoPlayerStyles';
 import * as webStyles from '../styles/WebVideoPlayerStyles';
@@ -31,6 +31,12 @@ const WebViewComponent = Platform.select({
 type VideoPlayerScreenProps = {
   route: RouteProp<RootStackParamList, 'VideoPlayer'>;
   navigation: StackNavigationProp<RootStackParamList, 'VideoPlayer'>;
+};
+
+// Format view count with commas
+const formatViewCount = (viewCount: string | undefined): string => {
+  if (!viewCount) return '';
+  return parseInt(viewCount).toLocaleString();
 };
 
 // Comment component for mobile
@@ -107,6 +113,7 @@ const WebPlayer = ({ video, navigation }: { video: any, navigation: any }) => {
   const [comments, setComments] = useState<YouTubeComment[]>([]);
   const [isLoadingComments, setIsLoadingComments] = useState<boolean>(true);
   const [tab, setTab] = useState<'description' | 'comments'>('description');
+  const [viewCount, setViewCount] = useState<string | undefined>(video.viewCount);
   
   useEffect(() => {
     const loadComments = async () => {
@@ -117,6 +124,17 @@ const WebPlayer = ({ video, navigation }: { video: any, navigation: any }) => {
     };
     
     loadComments();
+    
+    // Fetch view count if not already available
+    if (!video.viewCount) {
+      const loadViewCount = async () => {
+        const details = await fetchVideoDetails(video.id);
+        if (details?.viewCount) {
+          setViewCount(details.viewCount);
+        }
+      };
+      loadViewCount();
+    }
   }, [video.id]);
   
   const formatDate = (dateString: string) => {
@@ -151,6 +169,12 @@ const WebPlayer = ({ video, navigation }: { video: any, navigation: any }) => {
             <span style={webStyles.channelStyle}>{video.channelTitle}</span>
             <span style={webStyles.dotStyle}>•</span>
             <span style={webStyles.dateStyle}>{formatDate(video.publishedAt)}</span>
+            {viewCount && (
+              <>
+                <span style={webStyles.dotStyle}>•</span>
+                <span style={webStyles.viewsStyle}>{formatViewCount(viewCount)} views</span>
+              </>
+            )}
           </div>
         </div>
 
@@ -230,6 +254,7 @@ const VideoPlayerScreen: React.FC<VideoPlayerScreenProps> = ({ route, navigation
   const [activeTab, setActiveTab] = useState<'description' | 'comments'>('description');
   const [comments, setComments] = useState<YouTubeComment[]>([]);
   const [isLoadingComments, setIsLoadingComments] = useState<boolean>(false);
+  const [viewCount, setViewCount] = useState<string | undefined>(video.viewCount);
   
   useEffect(() => {
     Animated.parallel([
@@ -244,6 +269,17 @@ const VideoPlayerScreen: React.FC<VideoPlayerScreenProps> = ({ route, navigation
         useNativeDriver: true
       })
     ]).start();
+    
+    // Fetch view count if not already available
+    if (!video.viewCount) {
+      const loadViewCount = async () => {
+        const details = await fetchVideoDetails(video.id);
+        if (details?.viewCount) {
+          setViewCount(details.viewCount);
+        }
+      };
+      loadViewCount();
+    }
   }, []);
   
   useEffect(() => {
@@ -317,6 +353,14 @@ const VideoPlayerScreen: React.FC<VideoPlayerScreenProps> = ({ route, navigation
             <Text style={styles.dateInfo}>
               {formatDate(video.publishedAt)}
             </Text>
+            {viewCount && (
+              <>
+                <Text style={styles.dot}>•</Text>
+                <Text style={styles.viewCount}>
+                  {formatViewCount(viewCount)} views
+                </Text>
+              </>
+            )}
           </View>
         </View>
         

@@ -8,4 +8,5 @@ console.log('API Key from env:', apiKeyFromEnv ? 'Exists' : 'Empty');
 // Use the environment variable, but fallback to hardcoded key for testing
 export const YOUTUBE_API_KEY = apiKeyFromEnv;
 export const YOUTUBE_API_URL = 'https://www.googleapis.com/youtube/v3/search';
-export const YOUTUBE_COMMENTS_URL = 'https://www.googleapis.com/youtube/v3/commentThreads'; 
+export const YOUTUBE_COMMENTS_URL = 'https://www.googleapis.com/youtube/v3/commentThreads';
+export const YOUTUBE_VIDEOS_URL = 'https://www.googleapis.com/youtube/v3/videos'; 

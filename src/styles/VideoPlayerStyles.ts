@@ -54,6 +54,10 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
   },
+  viewCount: {
+    fontSize: 14,
+    color: '#666',
+  },
   tabContainer: {
     flexDirection: 'row',
     borderBottomWidth: 1,

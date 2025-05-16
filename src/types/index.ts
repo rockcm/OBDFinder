@@ -12,6 +12,7 @@ export interface YouTubeVideo {
   thumbnail: string;
   channelTitle: string;
   publishedAt: string;
+  viewCount?: string;
 }
 
 // YouTube Comment Interface
@@ -62,6 +63,18 @@ export interface YouTubeCommentsResponse {
     };
   }>;
   nextPageToken?: string;
+}
+
+// YouTube Video Details Response Interface
+export interface YouTubeVideoDetailsResponse {
+  items: Array<{
+    id: string;
+    statistics: {
+      viewCount: string;
+      likeCount: string;
+      commentCount: string;
+    };
+  }>;
 }
 
 // Navigation Types

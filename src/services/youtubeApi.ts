@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { YOUTUBE_API_KEY, YOUTUBE_API_URL, YOUTUBE_COMMENTS_URL } from '../config/api';
-import { YouTubeSearchResponse, YouTubeVideo, YouTubeComment, YouTubeCommentsResponse } from '../types';
+import { YOUTUBE_API_KEY, YOUTUBE_API_URL, YOUTUBE_COMMENTS_URL, YOUTUBE_VIDEOS_URL } from '../config/api';
+import { YouTubeSearchResponse, YouTubeVideo, YouTubeComment, YouTubeCommentsResponse, YouTubeVideoDetailsResponse } from '../types';
 
 /**
  * Search YouTube videos for the given OBD code
@@ -66,5 +66,32 @@ export const fetchYouTubeComments = async (videoId: string, maxResults: number =
     console.error('Error fetching YouTube comments:', error);
     // Return empty array instead of throwing to prevent app crashes if comments can't be loaded
     return [];
+  }
+};
+
+/**
+ * Fetch video details including view count
+ * @param videoId The YouTube video ID
+ * @returns Object with video statistics like viewCount
+ */
+export const fetchVideoDetails = async (videoId: string): Promise<{viewCount: string} | null> => {
+  try {
+    const response = await axios.get<YouTubeVideoDetailsResponse>(YOUTUBE_VIDEOS_URL, {
+      params: {
+        part: 'statistics',
+        id: videoId,
+        key: YOUTUBE_API_KEY,
+      }
+    });
+
+    if (response.data.items && response.data.items.length > 0) {
+      return { 
+        viewCount: response.data.items[0].statistics.viewCount 
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching video details:', error);
+    return null;
   }
 }; 

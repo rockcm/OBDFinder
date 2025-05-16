@@ -16,7 +16,7 @@ import { RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
 import { RootStackParamList, YouTubeVideo } from '../types';
-import { searchYouTubeVideos } from '../services/youtubeApi';
+import { searchYouTubeVideos, fetchVideoDetails } from '../services/youtubeApi';
 import { LinearGradient } from 'expo-linear-gradient';
 
 type SearchResultsScreenProps = {
@@ -26,6 +26,12 @@ type SearchResultsScreenProps = {
 
 const { width } = Dimensions.get('window');
 const ITEM_HEIGHT = 110;
+
+// Format view count with commas
+const formatViewCount = (viewCount: string | undefined): string => {
+  if (!viewCount) return '';
+  return parseInt(viewCount).toLocaleString();
+};
 
 const SearchResultsScreen: React.FC<SearchResultsScreenProps> = ({ route, navigation }) => {
   const { obdCode } = route.params;
@@ -46,7 +52,23 @@ const SearchResultsScreen: React.FC<SearchResultsScreenProps> = ({ route, naviga
     const fetchVideos = async () => {
       try {
         const results = await searchYouTubeVideos(obdCode);
-        setVideos(results);
+        
+        // Fetch view counts for each video
+        const updatedResults = await Promise.all(
+          results.map(async (video) => {
+            try {
+              const details = await fetchVideoDetails(video.id);
+              return {
+                ...video,
+                viewCount: details?.viewCount || undefined
+              };
+            } catch (error) {
+              return video;
+            }
+          })
+        );
+
+        setVideos(updatedResults);
         setLoading(false);
       } catch (err) {
         setError('Failed to fetch videos. Please try again.');
@@ -102,7 +124,15 @@ const SearchResultsScreen: React.FC<SearchResultsScreenProps> = ({ route, naviga
           <View style={styles.videoInfo}>
             <Text style={styles.videoTitle} numberOfLines={2}>{item.title}</Text>
             <Text style={styles.channelTitle}>{item.channelTitle}</Text>
-            <Text style={styles.date}>Published: {formatDate(item.publishedAt)}</Text>
+            <View style={styles.videoMetaRow}>
+              <Text style={styles.date}>Published: {formatDate(item.publishedAt)}</Text>
+              {item.viewCount && (
+                <>
+                  <Text style={styles.dot}>•</Text>
+                  <Text style={styles.viewCount}>{formatViewCount(item.viewCount)} views</Text>
+                </>
+              )}
+            </View>
           </View>
         </TouchableOpacity>
       </Animated.View>
@@ -336,7 +366,20 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 4,
   },
+  videoMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   date: {
+    fontSize: 12,
+    color: '#888',
+  },
+  dot: {
+    fontSize: 12,
+    color: '#888',
+    marginHorizontal: 4,
+  },
+  viewCount: {
     fontSize: 12,
     color: '#888',
   },
