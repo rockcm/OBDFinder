@@ -14,8 +14,8 @@ RUN npm ci
 COPY . .
 
 # Set build-time environment variables
-ARG YOUTUBE_API_KEY
-ENV YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+ARG EXPO_PUBLIC_YOUTUBE_API_KEY
+ENV EXPO_PUBLIC_YOUTUBE_API_KEY=${EXPO_PUBLIC_YOUTUBE_API_KEY}
 
 # Build the web version of the app
 RUN npm run build:web
