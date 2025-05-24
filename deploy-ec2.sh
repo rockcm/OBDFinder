@@ -47,6 +47,7 @@ echo "⚙️ Creating production environment file..."
 cat > .env << EOF
 NODE_ENV=production
 PORT=80
+YOUTUBE_API_KEY=your_youtube_api_key_here
 EOF
 
 # Build and run the application

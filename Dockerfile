@@ -13,6 +13,10 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Set build-time environment variables
+ARG YOUTUBE_API_KEY
+ENV YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+
 # Build the web version of the app
 RUN npm run build:web
 
