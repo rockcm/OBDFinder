@@ -199,8 +199,8 @@ const WebPlayer = ({ video, navigation }: { video: any, navigation: any }) => {
           {tab === 'description' ? (
             <div>
               <p style={webStyles.textStyle}>
-                {video.description}
-              </p>
+            {video.description}
+          </p>
             </div>
           ) : (
             <div>
@@ -410,8 +410,8 @@ const VideoPlayerScreen: React.FC<VideoPlayerScreenProps> = ({ route, navigation
           >
             {activeTab === 'description' ? (
               <>
-                <Text style={styles.descriptionTitle}>Description</Text>
-                <Text style={styles.description}>{video.description}</Text>
+            <Text style={styles.descriptionTitle}>Description</Text>
+            <Text style={styles.description}>{video.description}</Text>
               </>
             ) : (
               <>

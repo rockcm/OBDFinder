@@ -13,9 +13,10 @@ import {
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../types';
-import OBDLogo from '../components/OBDLogo';
+import AnimeOBDLogo from '../components/AnimeOBDLogo';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
+import { theme } from '../styles/theme';
 
 type HomeScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, 'Home'>;
@@ -44,7 +45,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   return (
     <LinearGradient
-      colors={['#1976D2', '#64B5F6']}
+      colors={theme.gradients.secondary}
       style={styles.gradientContainer}
     >
       <StatusBar style="light" />
@@ -68,7 +69,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               }
             ]}
           >
-            <OBDLogo width={150} height={150} />
+            <AnimeOBDLogo width={200} height={200} style={styles.logoContainer} />
             <Text style={styles.title}>OBD Code Search</Text>
             <Text style={styles.subtitle}>Find video solutions for your vehicle</Text>
           </Animated.View>
@@ -91,7 +92,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                   value={obdCode}
                   onChangeText={setObdCode}
                   placeholder="e.g. P0300"
-                  placeholderTextColor="#9E9E9E"
+                  placeholderTextColor={theme.text.muted}
                   autoCapitalize="characters"
                   maxLength={5}
                   onFocus={() => setIsFocused(true)}
@@ -119,19 +120,19 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               </Text>
               <View style={styles.codeTypesContainer}>
                 <View style={styles.codeType}>
-                  <Text style={styles.codeTypeLabel}>P</Text>
+                  <Text style={[styles.codeTypeLabel, styles.typePowertrain]}>P</Text>
                   <Text style={styles.codeTypeDescription}>Powertrain</Text>
                 </View>
                 <View style={styles.codeType}>
-                  <Text style={styles.codeTypeLabel}>B</Text>
+                  <Text style={[styles.codeTypeLabel, styles.typeBody]}>B</Text>
                   <Text style={styles.codeTypeDescription}>Body</Text>
                 </View>
                 <View style={styles.codeType}>
-                  <Text style={styles.codeTypeLabel}>C</Text>
+                  <Text style={[styles.codeTypeLabel, styles.typeChassis]}>C</Text>
                   <Text style={styles.codeTypeDescription}>Chassis</Text>
                 </View>
                 <View style={styles.codeType}>
-                  <Text style={styles.codeTypeLabel}>U</Text>
+                  <Text style={[styles.codeTypeLabel, styles.typeNetwork]}>U</Text>
                   <Text style={styles.codeTypeDescription}>Network</Text>
                 </View>
               </View>
@@ -160,50 +161,51 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 30,
   },
+  logoContainer: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    marginBottom: 10,
+  },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: theme.text.light,
     marginTop: 16,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: theme.text.subtitle,
     marginTop: 8,
     textAlign: 'center',
   },
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    backgroundColor: theme.background.card,
+    borderRadius: theme.borderRadius.large,
     padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 5,
+    ...theme.shadows.medium,
     marginBottom: 20,
   },
   label: {
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 12,
-    color: '#424242',
+    color: theme.text.dark,
   },
   inputContainer: {
     borderWidth: 2,
-    borderColor: '#E0E0E0',
-    borderRadius: 12,
-    backgroundColor: '#F5F5F5',
+    borderColor: theme.background.input,
+    borderRadius: theme.borderRadius.medium,
+    backgroundColor: theme.background.input,
     height: 56,
     marginBottom: 24,
     justifyContent: 'center',
     overflow: 'hidden',
   },
   inputContainerFocused: {
-    borderColor: '#1976D2',
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#1976D2',
+    borderColor: theme.primary.main,
+    backgroundColor: theme.background.card,
+    shadowColor: theme.primary.main,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -213,58 +215,50 @@ const styles = StyleSheet.create({
     fontSize: 18,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    color: '#212121',
+    color: theme.text.dark,
     fontWeight: '500',
     letterSpacing: 1,
   },
   button: {
-    backgroundColor: '#2196F3',
-    borderRadius: 12,
+    backgroundColor: theme.primary.main,
+    borderRadius: theme.borderRadius.medium,
     height: 56,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    ...theme.shadows.small,
   },
   buttonDisabled: {
-    backgroundColor: '#B0BEC5',
+    backgroundColor: theme.text.muted,
     shadowOpacity: 0,
     elevation: 0,
   },
   buttonText: {
-    color: 'white',
+    color: theme.text.light,
     fontSize: 18,
     fontWeight: '600',
     letterSpacing: 0.5,
   },
   infoCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    backgroundColor: theme.background.card,
+    borderRadius: theme.borderRadius.large,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
+    ...theme.shadows.medium,
   },
   infoHeader: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: theme.accent.light,
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#BBDEFB',
+    borderBottomColor: theme.accent.main,
   },
   infoTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1565C0',
+    color: theme.secondary.dark,
   },
   infoText: {
     fontSize: 15,
     lineHeight: 22,
-    color: '#424242',
+    color: theme.text.dark,
     padding: 16,
     paddingBottom: 8,
   },
@@ -284,8 +278,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#1976D2',
-    color: 'white',
+    color: theme.text.light,
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
@@ -293,9 +286,21 @@ const styles = StyleSheet.create({
     lineHeight: 36,
     marginBottom: 6,
   },
+  typePowertrain: {
+    backgroundColor: theme.primary.main,
+  },
+  typeBody: {
+    backgroundColor: theme.accent.main,
+  },
+  typeChassis: {
+    backgroundColor: theme.secondary.main,
+  },
+  typeNetwork: {
+    backgroundColor: theme.status.warning,
+  },
   codeTypeDescription: {
     fontSize: 12,
-    color: '#616161',
+    color: theme.text.muted,
   }
 });
 

@@ -125,7 +125,7 @@ const SearchResultsScreen: React.FC<SearchResultsScreenProps> = ({ route, naviga
             <Text style={styles.videoTitle} numberOfLines={2}>{item.title}</Text>
             <Text style={styles.channelTitle}>{item.channelTitle}</Text>
             <View style={styles.videoMetaRow}>
-              <Text style={styles.date}>Published: {formatDate(item.publishedAt)}</Text>
+            <Text style={styles.date}>Published: {formatDate(item.publishedAt)}</Text>
               {item.viewCount && (
                 <>
                   <Text style={styles.dot}>•</Text>
